@@ -7,7 +7,7 @@ In this repo, I will explore Kestra, a workflow orchestration tool to write an E
 ## What is Kestra?
 
 ## How to get started?
-You can use docker to start your project with Kestra quickly. You can also find the same docker command from (Kestra Documentation)[https://kestra.io/docs/getting-started/quickstart].
+You can use docker to start your project with Kestra quickly. You can also find the same docker command from !(Kestra Documentation)[https://kestra.io/docs/getting-started/quickstart].
 
 ```docker
 docker run --pull=always --rm -it -p 8080:8080 --user=root -v /var/run/docker.sock:/var/run/docker.sock -v /tmp:/tmp kestra/kestra:latest server local
