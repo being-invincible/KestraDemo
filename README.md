@@ -20,7 +20,7 @@ curl -o docker-compose.yml \
 https://raw.githubusercontent.com/kestra-io/kestra/develop/docker-compose.yml
 ```
 
-Run **docker compose up** to start your project. Head to 'localhost:8080'.
+Run **docker compose up** to start your project. Head to 'localhost:8080'. Follow this code to understand more about it and use it in your custom workflows.
 
 ## Build your first ETL in Kestra:
 I am gonna load the NY Taxi dataset which is split into years and months into a stagging table to combine them all and then load it into a Postgres DB for further conduct analysis. 
@@ -33,7 +33,7 @@ I am gonna use the NY taxi dataset (Green and Yellow), and define inputs and var
 2. Year (2019, 2020)
 3. Month (1 to 12)
 
-```yml
+```yaml
 inputs:
   - id: taxi
     type: SELECT
@@ -60,16 +60,36 @@ Kestra variables allow dynamic rendering of the inputs. Let's create the variabl
 3. For the database which has all the combined data
 4. The data itself (The output of the extraction)
 
-```yml
+```yaml
 variables:
   file: "{{inputs.taxi}}_tripdata_{{inputs.year}}-{{inputs.month}}.csv"
   staging_table: "public.{{inputs.taxi}}_tripdata_staging"
   table: "public.{{inputs.taxi}}_tripdata"
   data: "{{outputs.extract.outputFiles[inputs.taxi ~ '_tripdata_' ~ inputs.year ~ '-' ~ inputs.month ~ '.csv']}}"
 ```
+Next, I will create a set label task to set whether to pick the green or yellow taxi dataset. 
 
-Follow this code to understand more about it and use it in your custom workflows. 
-
-```yml
-
+```yaml
+tasks:
+  - id: set_label
+    type: io.kestra.plugin.core.execution.Labels
+    labels:
+      file: "{{render(vars.file)}}"
+      taxi: "{{inputs.taxi}}"
 ```
+
+Now, lets unzip or extract the csv file from github using the following defined task:
+```yaml
+- id: extract
+    type: io.kestra.plugin.scripts.shell.Commands
+    outputFiles:
+      - "*.csv"
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    commands:
+      - wget -qO- https://github.com/DataTalksClub/nyc-tlc-data/releases/download/{{inputs.taxi}}/{{render(vars.file)}}.gz | gunzip > {{render(vars.file)}}
+```
+
+If you already have a Python script for your job, use this link to find out more about it here - https://www.youtube.com/watch?v=s4GjfRqlfmg
+
+
