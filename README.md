@@ -20,4 +20,9 @@ curl -o docker-compose.yml \
 https://raw.githubusercontent.com/kestra-io/kestra/develop/docker-compose.yml
 ```
 
-Run **docker compose up** to start your project.
+Run **docker compose up** to start your project. Head to 'localhost:8080'.
+
+## Build your first ETL in Kestra:
+I am gonna use the NY taxi dataset (Green and Yellow), and use inputs and variables from Kestra to dynamically extract the data. 
+
+combine them into a staging table and load them into 
