@@ -12,3 +12,12 @@ You can use docker to start your project with Kestra quickly. You can also find 
 ```docker
 docker run --pull=always --rm -it -p 8080:8080 --user=root -v /var/run/docker.sock:/var/run/docker.sock -v /tmp:/tmp kestra/kestra:latest server local
 ```
+
+This is only to get you started quickly. To save your workflows in your Kestra instance, we need to use docker-compose. This particular command will download the docker-compose.yml file to setup Kestra and Postgres
+
+```bash
+curl -o docker-compose.yml \
+https://raw.githubusercontent.com/kestra-io/kestra/develop/docker-compose.yml
+```
+
+Run **docker compose up** to start your project.
