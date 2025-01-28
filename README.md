@@ -22,74 +22,109 @@ https://raw.githubusercontent.com/kestra-io/kestra/develop/docker-compose.yml
 
 Run **docker compose up** to start your project. Head to 'localhost:8080'. Follow this code to understand more about it and use it in your custom workflows.
 
-## Build your first ETL in Kestra:
-I am gonna load the NY Taxi dataset which is split into years and months into a stagging table to combine them all and then load it into a Postgres DB for further conduct analysis. 
+But you can also leverage this docker-compose file below to have all the services running under one docker compose.
 
-I am gonna use the NY taxi dataset (Green and Yellow), and define inputs and variables from Kestra to dynamically extract the data. Then combine them into a stagging table and load them into a final database as clean data.
+```
+volumes:
+  postgres-data:
+    driver: local
+  kestra-data:
+    driver: local
+  zoomcamp-data:
+    driver: local
 
-### Inputs
+services:
+  postgres:
+    image: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: kestra
+      POSTGRES_USER: kestra
+      POSTGRES_PASSWORD: k3str4
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
 
-1. Colour of the dataset (yellow or green)
-2. Year (2019, 2020)
-3. Month (1 to 12)
+  kestra:
+    image: kestra/kestra:latest
+    pull_policy: always
+    # Note that this setup with a root user is intended for development purpose.
+    # Our base image runs without root, but the Docker Compose implementation needs root to access the Docker socket
+    # To run Kestra in a rootless mode in production, see: https://kestra.io/docs/installation/podman-compose
+    user: "root"
+    command: server standalone
+    volumes:
+      - kestra-data:/app/storage
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/kestra-wd:/tmp/kestra-wd
+    environment:
+      KESTRA_CONFIGURATION: |
+        datasources:
+          postgres:
+            url: jdbc:postgresql://postgres:5432/kestra
+            driverClassName: org.postgresql.Driver
+            username: kestra
+            password: k3str4
+        kestra:
+          server:
+            basicAuth:
+              enabled: false
+              username: "admin@kestra.io" # it must be a valid email address
+              password: kestra
+          repository:
+            type: postgres
+          storage:
+            type: local
+            local:
+              basePath: "/app/storage"
+          queue:
+            type: postgres
+          tasks:
+            tmpDir:
+              path: /tmp/kestra-wd/tmp
+          url: http://localhost:8080/
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_started
+    
+  postgres_zoomcamp:
+    image: postgres
+    environment:
+      POSTGRES_USER: kestra
+      POSTGRES_PASSWORD: k3str4
+      POSTGRES_DB: postgres-zoomcamp
+    ports:
+      - "5432:5432"
+    volumes:
+      - zoomcamp-data:/var/lib/postgresql/data
+    depends_on:
+      kestra:
+        condition: service_started
 
-```yaml
-inputs:
-  - id: taxi
-    type: SELECT
-    displayName: Select taxi type
-    values: [yellow, green]
-    defaults: yellow
-
-  - id: year
-    type: SELECT
-    displayName: Select year
-    values: ["2019", "2020"]
-    defaults: "2019"
-
-  - id: month
-    type: SELECT
-    displayName: Select month
-    values: ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-    defaults: "01"
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=root
+    ports:
+      - "8085:80"
+    depends_on:
+      postgres_zoomcamp:
+        condition: service_started
 ```
 
-Kestra variables allow dynamic rendering of the inputs. Let's create the variables as follows,
-1. For the file name
-2. For staging table
-3. For the database which has all the combined data
-4. The data itself (The output of the extraction)
-
-```yaml
-variables:
-  file: "{{inputs.taxi}}_tripdata_{{inputs.year}}-{{inputs.month}}.csv"
-  staging_table: "public.{{inputs.taxi}}_tripdata_staging"
-  table: "public.{{inputs.taxi}}_tripdata"
-  data: "{{outputs.extract.outputFiles[inputs.taxi ~ '_tripdata_' ~ inputs.year ~ '-' ~ inputs.month ~ '.csv']}}"
-```
-Next, I will create a set label task to set whether to pick the green or yellow taxi dataset. 
-
-```yaml
-tasks:
-  - id: set_label
-    type: io.kestra.plugin.core.execution.Labels
-    labels:
-      file: "{{render(vars.file)}}"
-      taxi: "{{inputs.taxi}}"
-```
-
-Now, lets unzip or extract the csv file from github using the following defined task:
-```yaml
-- id: extract
-    type: io.kestra.plugin.scripts.shell.Commands
-    outputFiles:
-      - "*.csv"
-    taskRunner:
-      type: io.kestra.plugin.core.runner.Process
-    commands:
-      - wget -qO- https://github.com/DataTalksClub/nyc-tlc-data/releases/download/{{inputs.taxi}}/{{render(vars.file)}}.gz | gunzip > {{render(vars.file)}}
-```
+You can import the flows into your Kestra space and run them for a few ETL tasks related to DE Zoomcamp 2025.
 
 If you already have a Python script for your job, use this link to find out more about it here - https://www.youtube.com/watch?v=s4GjfRqlfmg
+
+## Build your first ETL in Kestra using Python:
+
+
 
 
