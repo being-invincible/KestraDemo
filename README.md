@@ -2,10 +2,16 @@
 Introduction to workflow orchestration with Kestra
 
 
-In this repo, I will explore Kestra, a workflow orchestration tool to write an ETL pipeline to ingest NY Taxi Data to Postgres (locally) and in BigQuery (GCP Cloud)
+In this repo, I will explore Kestra, a workflow orchestration tool to write an ETL pipeline to ingest NY Taxi Data to Postgres (locally) and in BigQuery (GCP Cloud). All this was a part of [Data Engineering Zoomcamp 2025](https://github.com/DataTalksClub/data-engineering-zoomcamp). Furthermore, I have also explored building ELT pipelines with Kestra from Google Maps' Places API to Big Query, where I have used Python scripts to do the extraction.
+
+## Build your first ELT in Kestra using Python:
+This is a simple architecture which will be followed in this flow. I am also making a video which will be attached below for everyone who wants to work with Python and Big Query in Kestra.
+
+<img width="1328" alt="KestaXPython" src="https://github.com/user-attachments/assets/7354bfc3-654d-4e72-8e4f-40bf0be10909" />
+
 
 ## What is Kestra?
-An event-driven workflow orchestration tool! Check out [Kestra Website]()
+An event-driven workflow orchestration tool! Check out [Kestra Website](https://kestra.io/)
 
 ## How to get started?
 You can use docker to start your project with Kestra quickly. You can also find the same docker command from [Kestra Documentation](https://kestra.io/docs/getting-started/quickstart).
@@ -124,7 +130,6 @@ You can import the flows into your Kestra space and run them for a few ETL tasks
 
 If you already have a Python script for your job, use this link to find out more about it here - https://www.youtube.com/watch?v=s4GjfRqlfmg
 
-## Build your first ETL in Kestra using Python:
 
 
 
