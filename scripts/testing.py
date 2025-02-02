@@ -1,10 +1,12 @@
 import requests
 import pandas as pd
 import time
-from kestra import Kestra
+import os
+from dotenv import load_dotenv, dotenv_values 
+load_dotenv() 
 
 # API Key for Google Places API
-API_KEY = Kestra.kv("PLACES_API")
+API_KEY = os.getenv("PLACES_API")
 
 # Coventry city center coordinates and radius
 LOCATION = "52.406822,-1.519693"
@@ -92,9 +94,7 @@ for store in all_stores:
         "Price_Level": store.get("price_level"),
     })
 
-# Create DataFrame and save
+# DataFrame for next steps
 df = pd.DataFrame(store_data)
 
-#print(df.head(5))
-
-Kestra.output(df, "convenience_stores_coventry")
+print(df.head(5))
