@@ -1,0 +1,15 @@
+id: myflow
+namespace: zoomcamp
+
+tasks:
+  - id: sayHi
+    type: io.kestra.plugin.scripts.python.Commands
+    namespaceFiles:
+      enabled: true
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+    containerImage: ghcr.io/kestra-io/pydata:latest
+    beforeCommands:
+      - pip install requests dotenv
+    commands:
+      - python main.py

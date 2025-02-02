@@ -1,0 +1,63 @@
+id: extract_groceries_coventry
+namespace: zoomcamp
+
+tasks:
+  - id: extractStoresData
+    type: io.kestra.plugin.scripts.python.Commands
+    namespaceFiles:
+      enabled: true
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+    containerImage: ghcr.io/kestra-io/pydata:latest
+    beforeCommands:
+      - pip install argparse Kestra
+    commands:
+      - python extract.py --key {{kv('PLACES_API')}}
+    outputFiles:
+      - "*.csv"
+
+  - id: loadToBigQuery
+    type: io.kestra.plugin.gcp.bigquery.Load
+    from: "{{ outputs.extractStoresData.outputFiles['convenience_stores_coventry.csv'] }}"
+    destinationTable: "{{ kv('GCP_PROJECT_ID') }}.{{ kv('GCP_DATASET') }}.staging_convenience_stores_coventry"
+    format: CSV
+    autodetect: true
+    csvOptions:
+      fieldDelimiter: ","
+    location: "{{kv('GCP_LOCATION')}}"
+  
+  - id: transformData
+    type: io.kestra.plugin.gcp.bigquery.Query
+    location: "{{ kv('GCP_LOCATION') }}"
+    sql: |
+      CREATE OR REPLACE TABLE `{{ kv('GCP_PROJECT_ID') }}.{{ kv('GCP_DATASET') }}.convenience_stores_with_trustworthiness` AS
+      SELECT
+        Name,
+        Address,
+        Latitude,
+        Longitude,
+        ST_GEOGPOINT(Longitude, Latitude) AS Location,
+        Rating,
+        User_Ratings_Total,
+        Business_Status,
+        Types,
+        Place_ID,
+        Price_Level,
+        -- Calculate Trust Score
+        (User_Ratings_Total / (User_Ratings_Total + 100)) * Rating AS Trust_Score,
+        -- Calculate Distance from Coventry city center
+        ST_DISTANCE(ST_GEOGPOINT(Longitude, Latitude), ST_GEOGPOINT(-1.519693, 52.406822)) AS Distance_From_City_Center
+      FROM
+        `{{ kv('GCP_PROJECT_ID') }}.{{ kv('GCP_DATASET') }}.staging_convenience_stores_coventry`
+      WHERE
+        Business_Status = 'OPERATIONAL'
+      ORDER By 
+        Distance_From_City_Center;
+
+
+pluginDefaults:
+  - type: io.kestra.plugin.gcp
+    values:
+      serviceAccount: "{{kv('GCP_CREDS')}}"
+      projectId: "{{kv('GCP_PROJECT_ID')}}"
+      location: "{{kv('GCP_LOCATION')}}"

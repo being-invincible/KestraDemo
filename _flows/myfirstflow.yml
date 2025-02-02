@@ -1,0 +1,14 @@
+id: myfirstflow
+namespace: zoomcamp
+
+tasks:
+  - id: response
+    type: io.kestra.plugin.scripts.python.Script
+    script: |
+      from kestra import Kestra
+      import requests
+      response = requests.get('https://kestra.io')
+      print(response.status_code)
+      Kestra.outputs({'status': response.status_code, 'text': response.text})
+    beforeCommands:
+      - pip install requests kestra
