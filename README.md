@@ -9,6 +9,9 @@ This is a simple architecture which will be followed in this flow. I am also mak
 
 <img width="1328" alt="KestaXPython" src="https://github.com/user-attachments/assets/7354bfc3-654d-4e72-8e4f-40bf0be10909" />
 
+Find the YT tutorial here:
+
+https://www.youtube.com/watch?v=l5k9GxaUYYI&t=5s
 
 ## What is Kestra?
 An event-driven workflow orchestration tool! Check out [Kestra Website](https://kestra.io/)
